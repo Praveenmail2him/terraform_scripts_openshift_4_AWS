@@ -1,5 +1,8 @@
 provider "aws" {
-  region = "${var.aws_region}"
+ region = "us-east-2"
+ access_key = "AKIAS3QAC4CHTXSACZMI"
+ secret_key = "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"
+
 }
 
 data "aws_caller_identity" "current" {

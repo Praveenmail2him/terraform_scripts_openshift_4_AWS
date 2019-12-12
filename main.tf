@@ -1,3 +1,8 @@
+provider "aws" {
+ region = "us-east-2"
+ access_key = "AKIAS3QAC4CHTXSACZMI"
+ secret_key = "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"
+}
 resource "random_id" "clusterid" {
   byte_length = "2"
 }
