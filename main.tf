@@ -7,7 +7,7 @@ locals {
 }
 
 module "private_network" {
-  source = "./1_private_network"
+  source = "./1_vpc_configuration"
   aws_region = "${var.aws_region}"
   aws_azs = "${var.aws_azs}"
   default_tags = "${var.default_tags}"
@@ -25,7 +25,7 @@ module "private_network" {
 #     "${module.private_network.private_vpc_public_subnet_ids}"
 # ---------------------------
 module "load_balancer" {
-  source = "./2_load_balancer"
+  source = "./2_load_balancer_configuration"
   aws_region = "${var.aws_region}"
   default_tags = "${var.default_tags}"
   infrastructure_id = "${local.infrastructure_id}"
@@ -42,7 +42,7 @@ module "load_balancer" {
 #     "${module.load_balancer.ocp_control_plane_lb_int_22623_tg_arn}"
 # ---------------------------
 module "dns" {
-  source = "./3_dns"
+  source = "./3_dns_configuration"
   aws_region = "${var.aws_region}"
   default_tags = "${var.default_tags}"
   infrastructure_id = "${local.infrastructure_id}"
@@ -59,7 +59,7 @@ module "dns" {
 #     "${module.dns.ocp_control_plane_lb_int_arn}"
 # ---------------------------
 module "security_group" {
-  source = "./4_security_group"
+  source = "./4_security_group_configuration"
   aws_region = "${var.aws_region}"
   default_tags = "${var.default_tags}"
   clustername = "${var.clustername}"
@@ -73,7 +73,7 @@ module "security_group" {
 #     "${module.security_group.ocp_worker_security_group_id}"
 # ---------------------------
 module "iam" {
-  source = "./5_iam"
+  source = "./5_iam_configuration"
   aws_region = "${var.aws_region}"
   default_tags = "${var.default_tags}"
   infrastructure_id = "${local.infrastructure_id}"
@@ -86,7 +86,7 @@ module "iam" {
 #     "${module.iam.ocp_worker_instance_profile_id}"
 # ---------------------------
 module "bootstrap" {
-  source = "./6_bootstrap"
+  source = "./6_bootstrap_ignition_configuration"
   aws_region = "${var.aws_region}"
   aws_azs = "${var.aws_azs}"
   default_tags = "${var.default_tags}"
@@ -125,7 +125,7 @@ module "bootstrap" {
 #     "${module.bootstrap.public_ssh_key}"
 # ---------------------------
 module "control_plane" {
-  source = "./7_control_plane"
+  source = "./7_control_plane_RHCS_configuration"
   aws_region = "${var.aws_region}"
   aws_azs = "${var.aws_azs}"
   default_tags = "${var.default_tags}"
@@ -157,7 +157,7 @@ module "control_plane" {
 # module post install - waiting for aws load balancer
 #
 module "postinstall" {
-  source = "./8_postinstall"
+  source = "./8_postinstall_operations"
   aws_region = "${var.aws_region}"
   aws_azs = "${var.aws_azs}"
   default_tags = "${var.default_tags}"
