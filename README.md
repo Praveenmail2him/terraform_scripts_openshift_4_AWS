@@ -206,7 +206,7 @@ openshift-vw9j6
 ```
 
 
-## Installation Procedure
+## Installation Procedure using Terraform
 
 This project installs the OpenShift 4 in several stages where each stage automates the provisioning of different components from infrastructure to OpenShift installation. The design is to provide the flexibility of different topology and infrastructure requirement.
 
