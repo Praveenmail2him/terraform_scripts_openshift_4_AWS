@@ -339,3 +339,156 @@ Run the terraform provisioning:
 terraform plan
 terraform apply
 ```
+
+
+## Monitor for `bootstrap-complete` and Initialization
+
+```console
+$ bin/openshift-install wait-for bootstrap-complete
+INFO Waiting up to 30m0s for the Kubernetes API at https://api.test.example.com:6443...
+INFO API v1.12.4+c53f462 up
+INFO Waiting up to 30m0s for the bootstrap-complete event...
+```
+
+## Destroy Bootstrap Resources
+
+At this point, you should delete the bootstrap resources. If using the CloudFormation template, you would [delete the
+stack][delete-stack] created for the bootstrap to clean up all the temporary resources.
+
+## Launch Additional Compute Nodes
+
+You may create compute nodes by launching individual EC2 instances discretely or by automated processes outside the cluster (e.g. Auto Scaling Groups).
+You can also take advantage of the built in cluster scaling mechanisms and the machine API in OpenShift, as mentioned [above](#create-ignition-configs).
+In this example, we'll manually launch instances via the CloudFormatio template [here](../../../upi/aws/cloudformation/06_cluster_worker_node.yaml).
+You can launch a CloudFormation stack to manage each individual compute node (you should launch at least two for a high-availability ingress router).
+A similar launch configuration could be used by outside automation or AWS auto scaling groups.
+
+#### Approving the CSR requests for nodes
+
+The CSR requests for client and server certificates for nodes joining the cluster will need to be approved by the administrator.
+You can view them with:
+
+```console
+$ oc get csr
+NAME        AGE     REQUESTOR                                                                   CONDITION
+csr-8b2br   15m     system:serviceaccount:openshift-machine-config-operator:node-bootstrapper   Approved,Issued
+csr-8vnps   15m     system:serviceaccount:openshift-machine-config-operator:node-bootstrapper   Approved,Issued
+csr-b96j4   25s     system:node:ip-10-0-52-215.us-east-2.compute.internal                       Approved,Issued
+csr-bfd72   5m26s   system:node:ip-10-0-50-126.us-east-2.compute.internal                       Pending
+csr-c57lv   5m26s   system:node:ip-10-0-95-157.us-east-2.compute.internal                       Pending
+...
+```
+
+Administrators should carefully examine each CSR request and approve only the ones that belong to the nodes created by them.
+CSRs can be approved by name, for example:
+
+```sh
+oc adm certificate approve csr-bfd72
+```
+
+## Add the Ingress DNS Records
+
+If you removed the DNS Zone configuration [earlier](#remove-dns-zones), you'll need to manually create some DNS records pointing at the ingress load balancer.
+You can create either a wildcard `*.apps.{baseDomain}.` or specific records (more on the specific records below).
+You can use A, CNAME, [alias][route53-alias], etc. records, as you see fit.
+For example, you can create wildcard alias records by retrieving the ingress load balancer status:
+
+```console
+$ oc -n openshift-ingress get service router-default
+NAME             TYPE           CLUSTER-IP      EXTERNAL-IP                                                              PORT(S)                      AGE
+router-default   LoadBalancer   172.30.62.215   ab37f072ec51d11e98a7a02ae97362dd-240922428.us-east-2.elb.amazonaws.com   80:31499/TCP,443:30693/TCP   5m
+```
+
+Then find the hosted zone ID for the load balancer (or use [this table][route53-zones-for-load-balancers]):
+
+```console
+$ aws elb describe-load-balancers | jq -r '.LoadBalancerDescriptions[] | select(.DNSName == "ab37f072ec51d11e98a7a02ae97362dd-240922428.us-east-2.elb.amazonaws.com").CanonicalHostedZoneNameID'
+Z3AADJGX6KTTL2
+```
+
+And finally, add the alias records to your private and public zones:
+
+```console
+$ aws route53 change-resource-record-sets --hosted-zone-id "${YOUR_PRIVATE_ZONE}" --change-batch '{
+>   "Changes": [
+>     {
+>       "Action": "CREATE",
+>       "ResourceRecordSet": {
+>         "Name": "\\052.apps.your.cluster.domain.example.com",
+>         "Type": "A",
+>         "AliasTarget":{
+>           "HostedZoneId": "Z3AADJGX6KTTL2",
+>           "DNSName": "ab37f072ec51d11e98a7a02ae97362dd-240922428.us-east-2.elb.amazonaws.com.",
+>           "EvaluateTargetHealth": false
+>         }
+>       }
+>     }
+>   ]
+> }'
+$ aws route53 change-resource-record-sets --hosted-zone-id "${YOUR_PUBLIC_ZONE}" --change-batch '{
+>   "Changes": [
+>     {
+>       "Action": "CREATE",
+>       "ResourceRecordSet": {
+>         "Name": "\\052.apps.your.cluster.domain.example.com",
+>         "Type": "A",
+>         "AliasTarget":{
+>           "HostedZoneId": "Z3AADJGX6KTTL2",
+>           "DNSName": "ab37f072ec51d11e98a7a02ae97362dd-240922428.us-east-2.elb.amazonaws.com.",
+>           "EvaluateTargetHealth": false
+>         }
+>       }
+>     }
+>   ]
+> }'
+```
+
+If you prefer to add explicit domains instead of using a wildcard, you can create entries for each of the cluster's current routes:
+
+```console
+$ oc get --all-namespaces -o jsonpath='{range .items[*]}{range .status.ingress[*]}{.host}{"\n"}{end}{end}' routes
+oauth-openshift.apps.your.cluster.domain.example.com
+console-openshift-console.apps.your.cluster.domain.example.com
+downloads-openshift-console.apps.your.cluster.domain.example.com
+alertmanager-main-openshift-monitoring.apps.your.cluster.domain.example.com
+grafana-openshift-monitoring.apps.your.cluster.domain.example.com
+prometheus-k8s-openshift-monitoring.apps.your.cluster.domain.example.com
+```
+
+## Monitor for Cluster Completion
+
+```console
+$ bin/openshift-install wait-for install-complete
+INFO Waiting up to 30m0s for the cluster to initialize...
+```
+
+Also, you can observe the running state of your cluster pods:
+
+```console
+$ oc get pods --all-namespaces
+NAMESPACE                                               NAME                                                                READY     STATUS      RESTARTS   AGE
+kube-system                                             etcd-member-ip-10-0-3-111.us-east-2.compute.internal                1/1       Running     0          35m
+kube-system                                             etcd-member-ip-10-0-3-239.us-east-2.compute.internal                1/1       Running     0          37m
+kube-system                                             etcd-member-ip-10-0-3-24.us-east-2.compute.internal                 1/1       Running     0          35m
+openshift-apiserver-operator                            openshift-apiserver-operator-6d6674f4f4-h7t2t                       1/1       Running     1          37m
+openshift-apiserver                                     apiserver-fm48r                                                     1/1       Running     0          30m
+openshift-apiserver                                     apiserver-fxkvv                                                     1/1       Running     0          29m
+openshift-apiserver                                     apiserver-q85nm                                                     1/1       Running     0          29m
+...
+openshift-service-ca-operator                           openshift-service-ca-operator-66ff6dc6cd-9r257                      1/1       Running     0          37m
+openshift-service-ca                                    apiservice-cabundle-injector-695b6bcbc-cl5hm                        1/1       Running     0          35m
+openshift-service-ca                                    configmap-cabundle-injector-8498544d7-25qn6                         1/1       Running     0          35m
+openshift-service-ca                                    service-serving-cert-signer-6445fc9c6-wqdqn                         1/1       Running     0          35m
+openshift-service-catalog-apiserver-operator            openshift-service-catalog-apiserver-operator-549f44668b-b5q2w       1/1       Running     0          32m
+openshift-service-catalog-controller-manager-operator   openshift-service-catalog-controller-manager-operator-b78cr2lnm     1/1       Running     0          31m
+```
+
+[cloudformation]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html
+[delete-stack]: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-delete-stack.html
+[ingress-operator]: https://github.com/openshift/cluster-ingress-operator
+[kubernetes-service-load-balancers-exclude-masters]: https://github.com/kubernetes/kubernetes/issues/65618
+[machine-api-operator]: https://github.com/openshift/machine-api-operator
+[route53-alias]: https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-choosing-alias-non-alias.html
+[route53-zones-for-load-balancers]: https://docs.aws.amazon.com/general/latest/gr/rande.html#elb_region
+[encrypted-copy]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIEncryption.html#create-ami-encrypted-root-snapshot
+
