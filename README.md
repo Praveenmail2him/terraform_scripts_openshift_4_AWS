@@ -50,8 +50,12 @@ This project uses mainly Terraform as infrastructure management and installation
    sudo mv oc /usr/local/bin
    sudo mv kubectl /usr/local/bin
    oc version
-  
-   ```
+   
+   wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-install-linux-4.2.14.tar.gz
+   tar -xvf openshift-install-linux-4.2.14.tar.gz
+   chmod u+x openshift-install
+   sudo mv openshift-install /usr/local/bin
+    ```
 
    You'll also need the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/awscli-install-bundle.html) to do this.
 
@@ -71,7 +75,7 @@ This project uses mainly Terraform as infrastructure management and installation
 
 4. Prepare AWS Account Access
 
-   Please reference the [Required AWS Infrastructure components](https://docs.openshift.com/container-platform/4.1/installing/installing_aws_user_infra/installing-aws-user-infra.html#installation-aws-user-infra-requirements_installing-aws-user-infra) to setup your AWS account before installing OpenShift 4.
+   Please reference the [Required AWS Infrastructure components](https://docs.openshift.com/container-platform/4.2/installing/installing_aws_user_infra/installing-aws-user-infra.html#installation-aws-user-infra-requirements_installing-aws-user-infra) to setup your AWS account before installing OpenShift 4.
 
    We suggest to create an AWS IAM user dedicated for OpenShift installation with permissions documented above.
    On the bastion host, configure your AWS user credential as environment variables:
