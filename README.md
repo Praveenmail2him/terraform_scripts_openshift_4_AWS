@@ -73,9 +73,9 @@ This project uses mainly Terraform as infrastructure management and installation
     ocp4os.com
    ```
 
-4. Prepare AWS Account Access
+4. Prepare AWS Account Access ## Very Important
 
-   Please reference the [Required AWS Infrastructure components](https://docs.openshift.com/container-platform/4.2/installing/installing_aws_user_infra/installing-aws-user-infra.html#installation-aws-user-infra-requirements_installing-aws-user-infra) to setup your AWS account before installing OpenShift 4.
+   Please reference the ## [Required AWS Infrastructure components](https://docs.openshift.com/container-platform/4.2/installing/installing_aws_user_infra/installing-aws-user-infra.html#installation-aws-user-infra-requirements_installing-aws-user-infra) to setup your AWS account before installing OpenShift 4.
 
    We suggest to create an AWS IAM user dedicated for OpenShift installation with permissions documented above.
    On the bastion host, configure your AWS user credential as environment variables:
