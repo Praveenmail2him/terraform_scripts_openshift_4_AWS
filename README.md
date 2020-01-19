@@ -341,7 +341,7 @@ terraform apply
 ```
 
 
-## Monitor for `bootstrap-complete` and Initialization
+## Ending Notes -- Monitor for `bootstrap-complete` and Initialization
 
 ```console
 $ bin/openshift-install wait-for bootstrap-complete
