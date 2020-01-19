@@ -164,6 +164,51 @@ Initialize the Terraform:
 ```bash
 terraform init
 ```
+Recommended Installation
+You navigate to the Individual folder (Modules) and perform these operations for better understanding and debugging.
+
+```bash
+[ec2-user@ip-172-31-13-179 1_vpc_configuration]$ terraform init
+[ec2-user@ip-172-31-13-179 1_vpc_configuration]$ terraform plan
+[ec2-user@ip-172-31-13-179 1_vpc_configuration]$ terraform apply
+
+```
+You can take the Output values of each module and apply to your prompts to you next module, for example like this
+```bash
+aws_route.ocp_pri_net_route_ngw[2]: Creation complete after 2s [id=r-rtb-05621326f0a3192b11080289494]
+aws_vpc_endpoint.private_ec2: Creation complete after 1m53s [id=vpce-0c2ea2a7ee4cce9e2]
+
+Apply complete! Resources: 41 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+clustername = ocp4
+infrastructure_id = ocp4-f0f9
+private_vpc_id = vpc-0721cc2575910c2d6
+private_vpc_private_subnet_ids = [
+  "subnet-03ed5a72f6a970bce",
+  "subnet-03d0f5de0e38e725a",
+  "subnet-00e5ca4992f240cfd",
+]
+private_vpc_public_subnet_ids = [
+  "subnet-0c8d33e59b9e03428",
+  "subnet-089e52102cf02ac81",
+  "subnet-0822245d745c93d8a",
+]
+[ec2-user@ip-172-31-13-179 2_load_balancer_configuration]$terraform init
+
+[ec2-user@ip-172-31-13-179 2_load_balancer_configuration]$ terraform plan
+var.private_vpc_id
+  Enter a value: vpc-0721cc2575910c2d6
+
+var.private_vpc_private_subnet_ids
+  List of subnet ids
+  Enter a value: ["subnet-03ed5a72f6a970bce","subnet-03d0f5de0e38e725a","subnet-00e5ca4992f240cfd"]
+  
+[ec2-user@ip-172-31-13-179 2_load_balancer_configuration]$ terraform apply
+
+```
+
 
 Run the terraform provisioning:
 
