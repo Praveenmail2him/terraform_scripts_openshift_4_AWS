@@ -44,12 +44,13 @@ This project uses mainly Terraform as infrastructure management and installation
    Install OpenShift command line `oc` cli:
 
    ```bash
-   wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux-4.2.10.tar.gz
-   tar -xvf openshift-client-linux-4.2.10.tar.gz
+   wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux-4.2.14.tar.gz
+   tar -xvf openshift-client-linux-4.2.14.tar.gz
    chmod u+x oc kubectl
    sudo mv oc /usr/local/bin
    sudo mv kubectl /usr/local/bin
    oc version
+  
    ```
 
    You'll also need the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/awscli-install-bundle.html) to do this.
