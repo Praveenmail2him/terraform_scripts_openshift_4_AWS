@@ -124,7 +124,7 @@ you intend to launch your hosts.
 
 ### Empty Compute Pools
 
-We'll be providing the control-plane and compute machines ourselves, so edit the resulting `install-config.yaml` to set `replicas` to 0 for the `compute` pool:
+We'll be providing the control-plane and compute machines ourselves, so edit the resulting `install-config.yaml` to set `replicas` to 0 for the `compute` pool: Run this Python command from your Host Machine (where you have cloned this Code).
 
 ```sh
 python -c '
@@ -158,7 +158,8 @@ You are free to leave the compute MachineSets in if you want to create compute m
 
 Currently [emptying the compute pools](#empty-compute-pools) makes control-plane nodes schedulable.
 But due to a [Kubernetes limitation][kubernetes-service-load-balancers-exclude-masters], router pods running on control-plane nodes will not be reachable by the ingress load balancer.
-Update the scheduler configuration to keep router pods and other workloads off the control-plane nodes:
+Update the scheduler configuration to keep router pods and other workloads off the control-plane nodes: 
+Run this Python command from your Host Machine (where you have cloned this Code).
 
 ```sh
 python -c '
@@ -178,8 +179,10 @@ $ openshift-install create ignition-configs
 ```
 
 After running the command, several files will be available in the directory.
+Tree command you have to install to get a look like this. But this is Optional.
 
 ```console
+$ yum install tree 
 $ tree
 .
 ├── auth
